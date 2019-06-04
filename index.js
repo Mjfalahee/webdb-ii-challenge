@@ -84,7 +84,7 @@ server.post('/api/zoos', (req, res) => {
 
 
 //remove data
-server.delete('/:id', (req, res) => {
+server.delete('/api/zoos/:id', (req, res) => {
   db('zoos')
     .where({id: req.params.id})
     .del()
@@ -104,6 +104,40 @@ server.delete('/:id', (req, res) => {
         message: 'Error while trying to remove the zoo from the database.'
       })
     })
+})
+
+//update data
+server.put('/api/zoos/:id', (req, res) => {
+  if (req.body.name.length > 0) {
+  db('zoos')
+    .where({id: req.params.id})
+    .update(req.body)
+    //check to see how many rows were updated, if one was, find the newly updated row and return the newly updated zoo.
+    .then(num => {
+      if (num > 0) {
+        db('zoos')
+          .where({id: req.params.id})
+          .first()
+          .then(zoo => {
+            res.status(200).json(zoo);
+          })
+      } else {
+        res.status(404).json({
+          message: 'No zoo found with that ID.'
+        })
+      }
+    })
+    .catch(error => {
+      res.status(500).json({
+        message: 'Error with the database while trying to update.'
+      })
+    })
+  } else {
+    res.status(400).json({
+      message: 'You must provide information for updating.'
+    })
+  }
+
 })
 
 const port = 3300;
